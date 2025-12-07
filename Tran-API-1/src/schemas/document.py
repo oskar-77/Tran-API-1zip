@@ -160,7 +160,28 @@ class LinkBlock(BaseBlock):
     url: str = Field(description="Link URL")
 
 
-Block = Union[HeadingBlock, ParagraphBlock, ImageBlock, TableBlock, ListBlock, LinkBlock]
+class PositionedTextBlock(BaseBlock):
+    """Text block with precise positioning and size information."""
+    type: BlockType = Field(default=BlockType.POSITIONED_TEXT)
+    text: str = Field(description="The text content")
+    bbox: BoundingBox = Field(default_factory=BoundingBox, description="Position and size")
+    style: TextStyle = Field(default_factory=TextStyle, description="Text styling")
+    confidence: float = Field(default=1.0, ge=0, le=1, description="OCR confidence score")
+    language: Optional[str] = Field(default=None, description="Detected language")
+
+
+class OCRResult(BaseModel):
+    """OCR extraction result with detailed information."""
+    text: str = Field(description="Extracted text")
+    confidence: float = Field(default=0, description="Average confidence score")
+    language: str = Field(default="unknown", description="Detected language")
+    word_count: int = Field(default=0, description="Total word count")
+    blocks: List[PositionedTextBlock] = Field(default_factory=list, description="Positioned text blocks")
+    tables: List[TableBlock] = Field(default_factory=list, description="Extracted tables")
+    is_rtl: bool = Field(default=False, description="Is predominantly RTL text")
+
+
+Block = Union[HeadingBlock, ParagraphBlock, ImageBlock, TableBlock, ListBlock, LinkBlock, PositionedTextBlock]
 
 
 class Page(BaseModel):

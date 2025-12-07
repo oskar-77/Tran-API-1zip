@@ -1,8 +1,8 @@
 """Document Processing Agent - Main orchestration class."""
 
 from pathlib import Path
-from typing import Optional, Union, Type
-from src.schemas.document import Document, TextDirection
+from typing import Optional, Union, Type, List
+from src.schemas.document import Document, TextDirection, OCRResult
 from src.extractors.base_extractor import BaseExtractor
 from src.extractors.pdf_extractor import PDFExtractor
 from src.extractors.docx_extractor import DocxExtractor
@@ -10,6 +10,7 @@ from src.extractors.pptx_extractor import PptxExtractor
 from src.extractors.xlsx_extractor import XlsxExtractor
 from src.extractors.text_extractor import TextExtractor
 from src.extractors.markdown_extractor import MarkdownExtractor
+from src.extractors.ocr_extractor import OCRExtractor, ScannedPDFExtractor, extract_from_image
 from src.converters.base_converter import BaseConverter
 from src.converters.html_converter import HTMLConverter
 from src.converters.docx_converter import DocxConverter
@@ -28,6 +29,17 @@ class DocumentAgent:
         '.txt': TextExtractor,
         '.md': MarkdownExtractor,
         '.markdown': MarkdownExtractor,
+    }
+    
+    IMAGE_EXTRACTOR_MAP: dict[str, Type[BaseExtractor]] = {
+        '.png': OCRExtractor,
+        '.jpg': OCRExtractor,
+        '.jpeg': OCRExtractor,
+        '.tiff': OCRExtractor,
+        '.tif': OCRExtractor,
+        '.bmp': OCRExtractor,
+        '.gif': OCRExtractor,
+        '.webp': OCRExtractor,
     }
     
     CONVERTER_MAP: dict[str, Type[BaseConverter]] = {
@@ -316,9 +328,88 @@ class DocumentAgent:
         return list(cls.EXTRACTOR_MAP.keys())
     
     @classmethod
+    def get_supported_image_formats(cls) -> list[str]:
+        """Get list of supported image formats for OCR."""
+        return list(cls.IMAGE_EXTRACTOR_MAP.keys())
+    
+    @classmethod
     def get_supported_output_formats(cls) -> list[str]:
         """Get list of supported output formats."""
         return list(set(cls.CONVERTER_MAP.keys()))
+    
+    def load_image(self, file_path: Union[str, Path], 
+                   languages: List[str] = None) -> Document:
+        """Load and extract content from an image using OCR.
+        
+        Args:
+            file_path: Path to the image file
+            languages: List of language codes (default: ['ara', 'eng'])
+            
+        Returns:
+            Unified Document model
+            
+        Raises:
+            FileNotFoundError: If file doesn't exist
+            ValueError: If file type is not supported
+        """
+        file_path = Path(file_path)
+        
+        if not file_path.exists():
+            raise FileNotFoundError(f"File not found: {file_path}")
+        
+        ext = file_path.suffix.lower()
+        
+        if ext not in self.IMAGE_EXTRACTOR_MAP:
+            supported = ', '.join(self.IMAGE_EXTRACTOR_MAP.keys())
+            raise ValueError(
+                f"Unsupported image type: {ext}. "
+                f"Supported types: {supported}"
+            )
+        
+        extractor = OCRExtractor(str(file_path), languages or ['ara', 'eng'])
+        
+        self._document = extractor.extract()
+        self._source_path = file_path
+        
+        return self._document
+    
+    def load_scanned_pdf(self, file_path: Union[str, Path],
+                         languages: List[str] = None,
+                         dpi: int = 300) -> Document:
+        """Load and extract content from a scanned PDF using OCR.
+        
+        Args:
+            file_path: Path to the PDF file
+            languages: List of language codes (default: ['ara', 'eng'])
+            dpi: Resolution for PDF to image conversion
+            
+        Returns:
+            Unified Document model
+        """
+        file_path = Path(file_path)
+        
+        if not file_path.exists():
+            raise FileNotFoundError(f"File not found: {file_path}")
+        
+        extractor = ScannedPDFExtractor(str(file_path), languages or ['ara', 'eng'], dpi)
+        
+        self._document = extractor.extract()
+        self._source_path = file_path
+        
+        return self._document
+    
+    def ocr_extract(self, file_path: Union[str, Path],
+                    languages: List[str] = None) -> OCRResult:
+        """Extract text and tables from image using OCR.
+        
+        Args:
+            file_path: Path to the image file
+            languages: List of language codes (default: ['ara', 'eng'])
+            
+        Returns:
+            OCRResult with extracted text and metadata
+        """
+        return extract_from_image(str(file_path), languages or ['ara', 'eng'])
     
     def __repr__(self) -> str:
         """String representation."""

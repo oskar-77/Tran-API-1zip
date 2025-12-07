@@ -1,7 +1,39 @@
 modules = ["python-3.11"]
 [nix]
 channel = "stable-25_05"
-packages = ["freetype", "hdf5", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "poppler-utils", "poppler_utils", "tcl", "tesseract", "tk", "unzip", "zlib", "tesseract4"]
+packages = ["freetype", "gumbo", "harfbuzz", "hdf5", "jbig2dec", "lcms2", "libimagequant", "libjpeg", "libjpeg_turbo", "libtiff", "libwebp", "libxcrypt", "mupdf", "openjpeg", "poppler-utils", "poppler_utils", "swig", "tcl", "tesseract", "tesseract4", "tk", "unzip", "xcbuild", "zlib"]
 
 [agent]
 expertMode = true
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Document Processing API"
+
+[[workflows.workflow]]
+name = "Document Processing API"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd Tran-API-1 && python app.py"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 35681
+externalPort = 3000
