@@ -1,6 +1,7 @@
+modules = ["python-3.11"]
 [nix]
 channel = "stable-25_05"
-packages = ["unzip"]
+packages = ["freetype", "hdf5", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "poppler-utils", "poppler_utils", "tcl", "tesseract", "tk", "unzip", "zlib", "tesseract4"]
 
 [agent]
 expertMode = true
