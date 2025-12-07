@@ -1,0 +1,23 @@
+Document Processing Agent - Sample Text File
+
+This is a sample plain text file to test the text extraction capabilities.
+
+FEATURES
+The agent can extract:
+- Paragraphs and text blocks
+- Lists (ordered and unordered)
+- URLs and links
+
+LINKS
+Visit our documentation at https://example.com/docs
+For support, contact support@example.com
+
+ARABIC TEXT
+هذا نص تجريبي باللغة العربية لاختبار دعم اتجاه النص من اليمين إلى اليسار.
+
+SAMPLE DATA
+Name: Document Agent
+Version: 1.0.0
+Status: Active
+
+This is a multi-paragraph text file that demonstrates how the agent handles plain text content with various formatting elements.
